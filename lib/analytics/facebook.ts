@@ -438,7 +438,37 @@ export class FacebookAnalytics {
    */
   private async storePostAnalytics(postId: string, metrics: FacebookMetrics): Promise<void> {
     try {
-      // Check if analytics record already exists
+      // Update the posts table directly with the latest metrics
+      const { error: postUpdateError } = await supabaseAdmin
+        .from('posts')
+        .update({
+          impressions: metrics.impressions || 0,
+          reach: metrics.reach || 0,
+          engagement: metrics.engagement || 0,
+          clicks: metrics.clicks || 0,
+          shares: metrics.shares || 0,
+          comments: metrics.comments || 0,
+          likes: metrics.likes || 0,
+          views: metrics.views || metrics.video_views || 0,
+          last_analytics_update: metrics.collected_at || new Date().toISOString(),
+          facebook_metrics: {
+            reactions: metrics.reactions,
+            video_views: metrics.video_views,
+            video_watch_time: metrics.video_watch_time,
+            unique_views: metrics.unique_views,
+            organic_reach: metrics.organic_reach,
+            paid_reach: metrics.paid_reach
+          }
+        })
+        .eq('id', postId)
+
+      if (postUpdateError) {
+        console.error('Error updating post metrics in posts table:', postUpdateError)
+        await this.logError('update_post_metrics', postUpdateError, { postId, metrics })
+        throw postUpdateError
+      }
+
+      // Optionally, also update or insert into analytics table for historical tracking (optional, not required for dashboard)
       const { data: existing } = await supabaseAdmin
         .from('analytics')
         .select('id')
@@ -457,7 +487,7 @@ export class FacebookAnalytics {
         shares: metrics.shares || 0,
         comments: metrics.comments || 0,
         likes: metrics.likes || 0,
-        views: metrics.views || 0,
+        views: metrics.views || metrics.video_views || 0,
         watch_time_seconds: metrics.video_watch_time || 0,
         facebook_metrics: {
           reactions: metrics.reactions,
@@ -485,9 +515,9 @@ export class FacebookAnalytics {
       }
 
       console.log(`Analytics stored for Facebook post: ${metrics.post_id}`)
-
     } catch (error) {
       console.error('Error storing Facebook analytics:', error)
+      await this.logError('store_post_analytics', error, { postId, metrics })
       throw error
     }
   }

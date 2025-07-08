@@ -71,27 +71,89 @@ async function getAnalyticsSummary(days: number, platform?: string): Promise<Ana
   periodStart.setDate(periodStart.getDate() - days)
 
   try {
-    // Get videos with published platforms from our current data structure
+    // Get posts from our database for the specified period and platform
     let query = supabaseAdmin
-      .from('videos')
+      .from('posts')
       .select('*')
-      .gte('created_at', periodStart.toISOString())
-      .not('published_platforms', 'eq', '{}')
-      .not('published_platforms', 'is', null)
+      .gte('posted_at', periodStart.toISOString())
+      .eq('status', 'posted')
 
-    const { data: videos, error } = await query
+    if (platform) {
+      query = query.eq('platform', platform)
+    }
+
+    const { data: posts, error } = await query
 
     if (error) {
       throw error
     }
 
-    console.log(`Found ${videos?.length || 0} videos with published platforms`)
+    console.log(`Found ${posts?.length || 0} posts for analytics summary`)
 
-    // Process videos data into summary
-    const summary = processVideosData(videos || [], periodStart, new Date())
+    // Aggregate metrics
+    const summary: AnalyticsSummary = {
+      total_videos: 0, // Optionally count unique video_ids
+      total_posts: posts.length,
+      total_views: 0,
+      total_engagement: 0,
+      total_reach: 0,
+      total_impressions: 0,
+      period_start: periodStart,
+      period_end: new Date(),
+      platforms: {}
+    }
+
+    const platformData: Record<string, any> = {}
+    const uniqueVideoIds = new Set<string>()
+
+    for (const post of posts) {
+      uniqueVideoIds.add(post.video_id)
+      const plat = post.platform
+      if (!platformData[plat]) {
+        platformData[plat] = {
+          posts_count: 0,
+          total_views: 0,
+          total_engagement: 0,
+          total_reach: 0,
+          total_impressions: 0,
+          posts: []
+        }
+      }
+      platformData[plat].posts_count++
+      platformData[plat].total_views += post.views || 0
+      platformData[plat].total_engagement += post.engagement || 0
+      platformData[plat].total_reach += post.reach || 0
+      platformData[plat].total_impressions += post.impressions || 0
+      platformData[plat].posts.push(post)
+
+      summary.total_views += post.views || 0
+      summary.total_engagement += post.engagement || 0
+      summary.total_reach += post.reach || 0
+      summary.total_impressions += post.impressions || 0
+    }
+    summary.total_videos = uniqueVideoIds.size
+
+    // Process platform summaries
+    for (const [plat, data] of Object.entries(platformData)) {
+      const avgEngagementRate = data.total_impressions > 0 
+        ? (data.total_engagement / data.total_impressions) * 100 
+        : 0
+      const topPosts = data.posts
+        .sort((a: any, b: any) => new Date(b.posted_at).getTime() - new Date(a.posted_at).getTime())
+        .slice(0, 5)
+      summary.platforms[plat as keyof typeof summary.platforms] = {
+        platform: plat as 'facebook' | 'instagram' | 'tiktok' | 'youtube',
+        posts_count: data.posts_count,
+        total_views: data.total_views,
+        total_engagement: data.total_engagement,
+        total_reach: data.total_reach,
+        total_impressions: data.total_impressions,
+        average_engagement_rate: avgEngagementRate,
+        top_performing_posts: topPosts
+      }
+    }
 
     return summary
-
   } catch (error) {
     console.error('Error fetching analytics summary:', error)
     throw error
@@ -302,50 +364,4 @@ function processAnalyticsData(analytics: any[], periodStart: Date, periodEnd: Da
   }
 
   return summary
-}
-
-/**
- * Get recent activity (last 10 posts with analytics)
- */
-export async function getRecentActivity(): Promise<any[]> {
-  try {
-    const { data: analytics, error } = await supabaseAdmin
-      .from('analytics')
-      .select(`
-        *,
-        posts!inner(
-          id,
-          platform,
-          post_url,
-          caption,
-          posted_at,
-          video_id
-        )
-      `)
-      .order('collected_at', { ascending: false })
-      .limit(10)
-
-    if (error) {
-      throw error
-    }
-
-    return analytics.map(record => ({
-      id: record.posts.id,
-      platform: record.platform,
-      title: `Video ${record.posts.video_id?.substring(0, 8) || 'Unknown'}`, // Fallback title
-      caption: record.posts.caption,
-      post_url: record.posts.post_url,
-      posted_at: record.posts.posted_at,
-      metrics: {
-        views: record.views || 0,
-        engagement: record.engagement || 0,
-        reach: record.reach || 0,
-        impressions: record.impressions || 0
-      }
-    }))
-
-  } catch (error) {
-    console.error('Error fetching recent activity:', error)
-    return []
-  }
 } 
