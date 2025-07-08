@@ -285,25 +285,25 @@ export default function AnalyticsPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-4 bg-blue-50 rounded-lg">
                       <p className="text-2xl font-bold text-blue-600">
-                        {formatNumber(analytics.platforms.facebook.total_impressions)}
+                        {formatNumber(analytics.platforms.facebook?.total_impressions ?? 0)}
                       </p>
                       <p className="text-sm text-gray-600">Impressions</p>
                     </div>
                     <div className="text-center p-4 bg-green-50 rounded-lg">
                       <p className="text-2xl font-bold text-green-600">
-                        {formatNumber(analytics.platforms.facebook.total_reach)}
+                        {formatNumber(analytics.platforms.facebook?.total_reach ?? 0)}
                       </p>
                       <p className="text-sm text-gray-600">Reach</p>
                     </div>
                     <div className="text-center p-4 bg-purple-50 rounded-lg">
                       <p className="text-2xl font-bold text-purple-600">
-                        {formatNumber(analytics.platforms.facebook.total_views)}
+                        {formatNumber(analytics.platforms.facebook?.total_views ?? 0)}
                       </p>
                       <p className="text-sm text-gray-600">Views</p>
                     </div>
                     <div className="text-center p-4 bg-orange-50 rounded-lg">
                                              <p className="text-2xl font-bold text-orange-600">
-                         {formatPercentage(analytics.platforms.facebook.average_engagement_rate)}
+                         {formatPercentage(analytics.platforms.facebook?.average_engagement_rate ?? 0)}
                        </p>
                       <p className="text-sm text-gray-600">Engagement Rate</p>
                     </div>
@@ -323,13 +323,13 @@ export default function AnalyticsPage() {
                                   {post.title || 'Untitled'}
                                 </p>
                                 <p className="text-xs text-gray-600">
-                                  {formatNumber(post.metrics.engagement)} engagement
+                                  {formatNumber(post.metrics?.engagement ?? 0)} engagement
                                 </p>
                               </div>
                             </div>
                             <div className="text-right">
                               <p className="text-sm font-medium text-gray-900">
-                                {formatNumber(post.metrics.views)}
+                                {formatNumber(post.metrics?.views ?? 0)}
                               </p>
                               <p className="text-xs text-gray-600">views</p>
                             </div>
