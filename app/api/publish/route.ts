@@ -421,7 +421,7 @@ async function publishToFacebook(video: any) {
               return {
                 success: true,
                 postId: data.id,
-                postUrl: `https://www.facebook.com/share/r/${data.id}/`
+                postUrl: `https://www.facebook.com/${tokenData.page_id}/videos/${data.id}`
               }
             } else {
               const retryError = await retryResponse.json()
@@ -439,7 +439,7 @@ async function publishToFacebook(video: any) {
     return {
       success: true,
       postId: data.id,
-      postUrl: `https://www.facebook.com/share/r/${data.id}/`
+      postUrl: `https://www.facebook.com/${tokenData.page_id}/videos/${data.id}`
     }
 
   } catch (error) {
