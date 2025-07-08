@@ -8,7 +8,7 @@ export function Header() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="text-2xl">🎥</div>
+              <img src="/funfreq-logo.jpg" alt="FunFreq Logo" style={{ width: 32, height: 32, display: 'inline', verticalAlign: 'middle' }} />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
                   FunFreq AI Ops
