@@ -223,18 +223,18 @@ export class FacebookAnalytics {
   /**
    * Update analytics for all posts in our database
    */
-  async updateAllPostAnalytics(): Promise<void> {
+  async updateAllPostAnalytics(forceRefresh: boolean = false): Promise<void> {
     try {
       console.log('Starting Facebook analytics update for all posts...')
-      
       // Get all Facebook posts from our database
       const { data: posts, error } = await supabaseAdmin
         .from('posts')
-        .select('id, platform_post_id, video_id, created_at')
+        .select('id, platform_post_id, video_id, created_at, post_url')
         .eq('platform', 'facebook')
         .eq('status', 'posted')
 
       if (error) {
+        console.error('Error fetching posts from DB:', error)
         throw error
       }
 
@@ -246,19 +246,20 @@ export class FacebookAnalytics {
 
       for (const post of posts) {
         try {
+          console.log(`Processing post: DB id=${post.id}, FB post_id=${post.platform_post_id}, url=${post.post_url}`)
           // Check if post is too new (less than 1 hour old)
           const postAge = Date.now() - new Date(post.created_at || Date.now()).getTime()
           const oneHour = 60 * 60 * 1000
-          
-          if (postAge < oneHour) {
+          if (!forceRefresh && postAge < oneHour) {
             console.log(`Skipping post ${post.platform_post_id} - too new (${Math.round(postAge / 1000 / 60)} minutes old)`)
             skippedCount++
             continue
           }
 
           // Fetch insights with retry logic
+          console.log(`Fetching Facebook insights for post_id=${post.platform_post_id}`)
           const insights = await withRetry(
-            () => this.fetchPostInsights(post.platform_post_id),
+            () => this.fetchPostInsightsWithDebug(post.platform_post_id),
             3 // maxRetries
           )
 
@@ -281,6 +282,46 @@ export class FacebookAnalytics {
     } catch (error) {
       console.error('Error updating Facebook analytics:', error)
       await this.logError('update_all_analytics', error)
+      throw error
+    }
+  }
+
+  /**
+   * Fetch post insights with debug logging
+   */
+  async fetchPostInsightsWithDebug(postId: string): Promise<FacebookMetrics> {
+    try {
+      console.log(`[FB API] Fetching insights for postId=${postId}`)
+      const postMetrics = [
+        'post_impressions',
+        'post_impressions_unique',
+        'post_reactions_by_type_total',
+        'post_clicks',
+        'post_engaged_users',
+        'post_video_views',
+        'post_video_watch_time',
+        'post_video_views_unique',
+        'post_video_views_organic',
+        'post_video_views_paid',
+        'post_video_complete_views_organic',
+        'post_video_complete_views_paid',
+        'post_video_avg_time_watched',
+        'post_video_view_time_by_age_bucket_and_gender',
+        'post_video_view_time_by_country_id'
+      ]
+      const url = `${META_API_BASE}/${postId}/insights`
+      const params = {
+        metric: postMetrics.join(','),
+        access_token: this.accessToken
+      }
+      console.log(`[FB API] Request URL:`, url, params)
+      const response = await makeRequest(url, params)
+      console.log(`[FB API] Raw response for postId=${postId}:`, JSON.stringify(response, null, 2))
+      const processedMetrics = this.processPostInsights(response.data, postId)
+      console.log(`[FB API] Processed metrics for postId=${postId}:`, processedMetrics)
+      return processedMetrics
+    } catch (error) {
+      console.error(`[FB API] Error fetching insights for postId=${postId}:`, error)
       throw error
     }
   }
@@ -438,6 +479,7 @@ export class FacebookAnalytics {
    */
   private async storePostAnalytics(postId: string, metrics: FacebookMetrics): Promise<void> {
     try {
+      console.log(`[DB] Writing metrics to posts table for postId=${postId}:`, metrics)
       // Update the posts table directly with the latest metrics
       const { error: postUpdateError } = await supabaseAdmin
         .from('posts')
@@ -463,10 +505,11 @@ export class FacebookAnalytics {
         .eq('id', postId)
 
       if (postUpdateError) {
-        console.error('Error updating post metrics in posts table:', postUpdateError)
+        console.error('[DB] Error updating post metrics in posts table:', postUpdateError)
         await this.logError('update_post_metrics', postUpdateError, { postId, metrics })
         throw postUpdateError
       }
+      console.log(`[DB] Successfully updated post metrics for postId=${postId}`)
 
       // Optionally, also update or insert into analytics table for historical tracking (optional, not required for dashboard)
       const { data: existing } = await supabaseAdmin
@@ -516,7 +559,7 @@ export class FacebookAnalytics {
 
       console.log(`Analytics stored for Facebook post: ${metrics.post_id}`)
     } catch (error) {
-      console.error('Error storing Facebook analytics:', error)
+      console.error('[DB] Error storing Facebook analytics:', error)
       await this.logError('store_post_analytics', error, { postId, metrics })
       throw error
     }

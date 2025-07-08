@@ -9,12 +9,13 @@ export async function GET(req: NextRequest) {
     const period = searchParams.get('period') || '30' // days
     const platform = searchParams.get('platform') // optional filter
     const refresh = searchParams.get('refresh') === 'true'
+    const forceRefresh = searchParams.get('forceRefresh') === 'true'
 
     console.log(`Analytics request: period=${period} days, platform=${platform}, refresh=${refresh}`)
 
     // If refresh is requested, update analytics data
     if (refresh) {
-      await updateAnalyticsData()
+      await updateAnalyticsData(forceRefresh)
     }
 
     // Get analytics summary
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
 /**
  * Update analytics data for all platforms
  */
-async function updateAnalyticsData(): Promise<void> {
+async function updateAnalyticsData(forceRefresh: boolean = false): Promise<void> {
   try {
     console.log('Starting analytics data update...')
 
@@ -45,7 +46,7 @@ async function updateAnalyticsData(): Promise<void> {
     if (process.env.META_ACCESS_TOKEN && process.env.META_PAGE_ID) {
       try {
         const facebookAnalytics = new FacebookAnalytics()
-        await facebookAnalytics.updateAllPostAnalytics()
+        await facebookAnalytics.updateAllPostAnalytics(forceRefresh)
         console.log('Facebook analytics updated successfully')
       } catch (error) {
         console.error('Failed to update Facebook analytics:', error)
