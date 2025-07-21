@@ -12,7 +12,7 @@ import {
   Eye, 
   MessageSquare, 
   RefreshCw, 
-  Upload, 
+  Cloud, 
   BarChart3, 
   Settings,
   CheckCircle,
@@ -102,8 +102,8 @@ export default function Dashboard() {
             </Button>
             <Link href="/upload">
               <Button>
-                <Upload className="w-4 h-4 mr-2" />
-                Upload New Video
+                <Cloud className="w-4 h-4 mr-2" />
+                Select from Dropbox
               </Button>
             </Link>
           </div>
@@ -214,8 +214,8 @@ export default function Dashboard() {
                 </p>
                 <Link href="/upload">
                   <Button>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload Your First Video
+                    <Cloud className="w-4 h-4 mr-2" />
+                    Select Your First Video
                   </Button>
                 </Link>
               </div>
@@ -314,15 +314,15 @@ export default function Dashboard() {
                   <Video className="w-16 h-16 text-gray-400 mx-auto" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No videos uploaded yet
+                  No videos processed yet
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Get started by uploading your first video to begin the automation process
+                  Get started by selecting your first video from Dropbox to begin the automation process
                 </p>
                 <Link href="/upload">
                   <Button>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload Your First Video
+                    <Cloud className="w-4 h-4 mr-2" />
+                    Select Your First Video
                   </Button>
                 </Link>
               </div>
@@ -340,11 +340,11 @@ export default function Dashboard() {
             <Link href="/upload" className="block">
               <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                 <div className="mb-2">
-                  <Upload className="w-8 h-8 text-blue-600" />
+                  <Cloud className="w-8 h-8 text-blue-600" />
                 </div>
-                <h3 className="font-medium">Upload Video</h3>
+                <h3 className="font-medium">Select from Dropbox</h3>
                 <p className="text-sm text-gray-600">
-                  Start the automation process with a new video
+                  Start the automation process with a video from Dropbox
                 </p>
               </div>
             </Link>

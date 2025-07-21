@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Layout } from '@/components/layout/Layout'
-import { VideoUpload } from '@/components/forms/VideoUpload'
+import { DropboxVideoSelector } from '@/components/forms/DropboxVideoSelector'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { 
-  Upload, 
+  Cloud, 
   Video, 
   FileText, 
   Settings, 
@@ -57,24 +57,24 @@ export default function UploadPage() {
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Upload Video</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Select Video from Dropbox</h1>
           <p className="text-gray-600 mt-2">
-            Upload your video to start the AI-powered content automation process
+            Choose a video from your Dropbox folder to start the AI-powered content automation process
           </p>
         </div>
 
-        {/* Upload Process Steps */}
+        {/* Dropbox Process Steps */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            What happens after upload:
+            What happens after selection:
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="mb-2">
-                <Upload className="w-8 h-8 text-blue-600 mx-auto" />
+                <Cloud className="w-8 h-8 text-blue-600 mx-auto" />
               </div>
-              <h3 className="font-medium text-sm">Upload</h3>
-              <p className="text-xs text-gray-600">Your video is stored securely</p>
+              <h3 className="font-medium text-sm">Select</h3>
+              <p className="text-xs text-gray-600">Choose video from Dropbox</p>
             </div>
             <div className="text-center">
               <div className="mb-2">
@@ -100,8 +100,8 @@ export default function UploadPage() {
           </div>
         </div>
 
-        {/* Upload Component */}
-        <VideoUpload onUploadComplete={handleUploadComplete} />
+        {/* Dropbox Video Selector Component */}
+        <DropboxVideoSelector onVideoSelected={handleUploadComplete} />
 
         {/* Success State */}
         {uploadedVideo && (
@@ -144,10 +144,10 @@ export default function UploadPage() {
             </h3>
           </div>
           <ul className="text-blue-800 space-y-1 text-sm">
-            <li>• <span className="font-semibold">Supported formats:</span> .mp4, .mov, .avi, .mkv</li>
-            <li>• <span className="font-semibold">File size limit:</span> 50MB per file (free tier)</li>
-            <li>• <span className="font-semibold">Compression:</span> Compress videos to under 50MB for best compatibility</li>
-            <li>• <span className="font-semibold">Compression guide:</span> <a href="/compress-video" className="text-blue-700 underline hover:text-blue-900">How to compress your video</a></li>
+            <li>• <span className="font-semibold">Supported formats:</span> .mp4, .mov, .avi, .mkv, .wmv, .flv, .webm</li>
+            <li>• <span className="font-semibold">No file size limits:</span> Videos are processed directly from Dropbox</li>
+            <li>• <span className="font-semibold">Dropbox folder:</span> Videos are pulled from your configured Dropbox folder</li>
+            <li>• <span className="font-semibold">Processing:</span> Videos are automatically transcribed and prepared for caption generation</li>
             <li>• Use clear audio for accurate transcription</li>
             <li>• Vertical format (9:16) works best for social media</li>
             <li>• Include engaging hooks in the first few seconds</li>

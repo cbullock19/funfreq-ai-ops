@@ -6,7 +6,8 @@ A scalable web application for automating social media content creation and publ
 
 - **Multi-Platform Publishing**: Facebook, Instagram, TikTok, YouTube (Facebook fully implemented)
 - **AI-Powered Content Generation**: Automatic caption and hashtag generation
-- **Video Processing**: Upload, transcribe, and optimize videos for different platforms
+- **Dropbox Integration**: Direct video processing from Dropbox folders (no file size limits)
+- **Video Processing**: Transcribe and optimize videos for different platforms
 - **Analytics Dashboard**: Track performance across all platforms
 - **Token Management**: Secure OAuth integration with social media platforms
 - **Professional UI**: Clean, modern interface with professional icons
@@ -89,6 +90,8 @@ Visit [http://localhost:3000](http://localhost:3000) to see the application.
 | `META_APP_SECRET` | Facebook app secret | `abcdef1234567890abcdef1234567890` |
 | `OPENAI_API_KEY` | OpenAI API key | `sk-...` |
 | `ASSEMBLYAI_API_KEY` | AssemblyAI API key | `your_assemblyai_key` |
+| `DROPBOX_ACCESS_TOKEN` | Dropbox access token | `sl.xxx...` |
+| `DROPBOX_VIDEO_FOLDER_PATH` | Dropbox folder path | `/Client Content Portals/FunFreq/Clipped Footage (Automation Step 1)` |
 
 ### Optional Variables
 
@@ -97,6 +100,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see the application.
 | `NODE_ENV` | Environment mode | `development` |
 | `NEXT_PUBLIC_APP_URL` | App URL for OAuth | `http://localhost:3000` |
 | `ANALYTICS_ENABLED` | Enable analytics | `true` |
+| `DROPBOX_PROCESSED_FOLDER_PATH` | Dropbox processed folder path | Not set (files not moved) |
 
 ## 🚀 Deployment
 
@@ -175,7 +179,9 @@ funfreq_ops/
 ## 🔍 API Endpoints
 
 ### Video Management
-- `POST /api/upload/record` - Create video record
+- `GET /api/dropbox/videos` - List videos from Dropbox
+- `POST /api/dropbox/process` - Process selected Dropbox video
+- `POST /api/upload/record` - Create video record (legacy)
 - `GET /api/videos` - List all videos
 - `GET /api/videos/[id]` - Get video details
 - `PATCH /api/videos/[id]` - Update video
